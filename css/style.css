@@ -1,0 +1,30 @@
+body {
+    font-family: Calibri, sans-serif;
+    color: #212529;
+}
+.navbar {
+    font-family: Consolas, monospace;
+}
+.navbar .nav-link {
+    background-color: #0e8ea8;
+    color: #fff !important;
+}
+.navbar .nav-link:hover {
+    background-color: #0e8ea8;
+}
+.dropdown-menu {
+    background-color: #83d1e1;
+}
+.dropdown-menu .dropdown-item {
+    color: #212529;
+}
+.dropdown-menu .dropdown-item:hover {
+    background-color: #83d1e1;
+    color: #212529;
+}
+
+table {
+    border-color: #212529;
+    border-radius: round(4px);
+    border-width: thin solid 1px;
+}
