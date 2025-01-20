@@ -24,7 +24,11 @@ body {
 }
 
 table {
-    border-color: #212529;
-    border-radius: round(4px);
-    border-width: thin solid 1px;
+    color: #212529;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+thead {
+    border-radius: inherit;
 }
