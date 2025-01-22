@@ -51,11 +51,7 @@ class UserFetcher {
  * Class responsible for managing the user table and user interactions.
  */
 class UserTable {
-    /**
-     * @param {HTMLElement} tableElement - The table element to populate with users.
-     * @param {HTMLElement} inButton - The button to mark users as "In".
-     * @param {HTMLElement} outButton - The button to mark users as "Out".
-     */
+
     constructor(tableElement, inButton, outButton) {
         this.tableElement = tableElement;
         this.inButton = inButton;
@@ -117,27 +113,30 @@ class UserTable {
             alert('Please select a user first.');
             return;
         }
-
+    
         const index = this.selectedRow.dataset.index;
         const user = this.users[index];
         const statusCell = this.selectedRow.children[4];
         const outTimeCell = this.selectedRow.children[5];
         const durationCell = this.selectedRow.children[6];
         const returnTimeCell = this.selectedRow.children[7];
-
+    
         user.status = 'In';
         statusCell.textContent = 'In';
         user.outTime = 'N/A';
         outTimeCell.textContent = 'N/A';
-
+    
         clearInterval(this.intervalIds.get(user)); // Stop timer
         this.intervalIds.delete(user);
-
+    
         user.duration = 'N/A';
         durationCell.textContent = 'N/A';
-
+    
         user.returnTime = 'N/A'; // Clear return time
         returnTimeCell.textContent = 'N/A';
+    
+        // Remove the popup associated with this user
+        this.removePopup(user);
     }
 
     /**
@@ -193,7 +192,17 @@ class UserTable {
             durationCell.textContent = `${elapsedMinutes} min`;
             if (elapsedMinutes >= durationMinutes) {
                 clearInterval(intervalId);
-                this.showPopup(`${user.name} ${user.surname} is expected to return now.`);
+                this.showPopup(`
+                    <div style="position: relative; display: flex; align-items: center; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px;">
+                        <button style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 16px; cursor: pointer;" onclick="this.parentElement.remove()">&times;</button>
+                        <img src="${user.picture}" alt="Profile Picture" style="width: 60px; height: 60px; margin-right: 15px; border-radius: 50%;" />
+                        <div>
+                            <h5 style="margin: 0;">${user.name} ${user.surname}</h5>
+                            <p style="margin: 0;">Email: ${user.email}</p>
+                            <p style="margin: 0;">Status: ${user.status}</p>
+                        </div>
+                    </div>
+                    `);
             }
         }, 60000); // Update every minute
 
@@ -205,33 +214,131 @@ class UserTable {
      * @param {string} message - The message to display in the popup.
      */
     showPopup(message) {
+        // Remove any existing popup for the current user
+        this.removePopup(this.users[this.selectedRow.dataset.index]);
+    
+        // Create a new popup element
         const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.style.position = 'fixed';
-        popup.style.top = '20px';
-        popup.style.right = '20px';
-        popup.style.backgroundColor = '#f8d7da';
-        popup.style.color = '#721c24';
-        popup.style.padding = '10px';
-        popup.style.border = '1px solid #f5c6cb';
-        popup.style.borderRadius = '5px';
-        popup.style.zIndex = '1000';
-
+        popup.innerHTML = message;
+        popup.classList.add('popup-warning');
+        popup.dataset.user = this.selectedRow.dataset.index; // Attach user index to the popup
         document.body.appendChild(popup);
-
-        setTimeout(() => {
+    }
+    
+    removePopup(user) {
+        // Find and remove the popup associated with the given user
+        const popup = document.querySelector(`.popup-warning[data-user="${this.selectedRow.dataset.index}"]`);
+        if (popup) {
             popup.remove();
-        }, 5000); // Remove popup after 5 seconds
+        }
     }
 }
 
-// Initialize
+class ScheduleDelivery {
+    constructor(vehicleType, nameInput, surnameInput, telephoneInput, deliveryAddressInput, returnTimeInput, submitButton, deliveryBoard) {
+        this.vehicleType = vehicleType;
+        this.nameInput = nameInput;
+        this.surnameInput = surnameInput;
+        this.telephoneInput = telephoneInput;
+        this.deliveryAddressInput = deliveryAddressInput;
+        this.returnTimeInput = returnTimeInput;
+        this.submitButton = submitButton;
+        this.deliveryBoard = deliveryBoard;
+
+        this.submitButton.addEventListener('click', () => this.handleSubmit());
+    }
+
+    validateInput() {
+        if (!this.vehicleType.value) {
+            alert('Please select a vehicle type.');
+            return false;
+        }
+        if (!this.nameInput.value.trim()) {
+            alert('Please enter a name.');
+            return false;
+        }
+        if (!this.surnameInput.value.trim()) {
+            alert('Please enter a surname.');
+            return false;
+        }
+        if (!/^[0-9]{8}$/.test(this.telephoneInput.value)) {
+            alert('Please enter a valid 8-digit telephone number.');
+            return false;
+        }
+        if (!this.deliveryAddressInput.value.trim()) {
+            alert('Please enter a delivery address.');
+            return false;
+        }
+        if (!this.returnTimeInput.value) {
+            alert('Please select a return time.');
+            return false;
+        }
+        return true;
+    }
+
+    handleSubmit() {
+        if (!this.validateInput()) return;
+
+        const deliveryData = {
+            vehicleType: this.vehicleType.value,
+            name: this.nameInput.value.trim(),
+            surname: this.surnameInput.value.trim(),
+            telephone: this.telephoneInput.value,
+            deliveryAddress: this.deliveryAddressInput.value.trim(),
+            returnTime: this.returnTimeInput.value
+        };
+
+        this.addToDeliveryBoard(deliveryData);
+        this.clearInputs();
+        alert(`Delivery Scheduled for ${deliveryData.name} ${deliveryData.surname}`);
+    }
+
+    addToDeliveryBoard(deliveryData) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${deliveryData.vehicleType}</td>
+            <td>${deliveryData.name}</td>
+            <td>${deliveryData.surname}</td>
+            <td>${deliveryData.telephone}</td>
+            <td>${deliveryData.deliveryAddress}</td>
+            <td>${deliveryData.returnTime}</td>
+        `;
+
+        this.deliveryBoard.querySelector('tbody').appendChild(row);
+    }
+
+    clearInputs() {
+        this.vehicleType.value = '';
+        this.nameInput.value = '';
+        this.surnameInput.value = '';
+        this.telephoneInput.value = '';
+        this.deliveryAddressInput.value = '';
+        this.returnTimeInput.value = '';
+    }
+}
+
+// Set variables 
+
+//Users
 const apiUrl = 'https://randomuser.me/api/?results=10';
 const tableElement = document.querySelector('.table');
 const inButton = document.getElementById('in');
 const outButton = document.getElementById('out');
 const userFetcher = new UserFetcher(apiUrl);
 const userTable = new UserTable(tableElement, inButton, outButton);
+
+//Vehicle 
+const vehicleType = document.getElementById('vehicleType');
+const nameInput = document.getElementById('name');
+const surnameInput = document.getElementById('surname');
+const telephoneInput = document.getElementById('telephone');
+const deliveryAddressInput = document.getElementById('deliveryAddress');
+const returnTimeInput = document.getElementById('returnTime');
+const scheduleButton = document.getElementById('scheduleDelivery');
+const deliveryBoard = document.getElementById('deliveryBoard');
+
+const scheduleDelivery = new ScheduleDelivery(vehicleType, nameInput, surnameInput, telephoneInput, deliveryAddressInput, returnTimeInput, scheduleButton, deliveryBoard);
+
 
 (async () => {
     const users = await userFetcher.generateRandomUsers(5); // Generate 5 random users

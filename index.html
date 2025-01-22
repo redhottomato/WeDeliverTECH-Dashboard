@@ -100,24 +100,23 @@
             <tbody>
                 <tr>
                     <td>
-                        <select name="vehicle" id="cars" aria-label="Select Vehicle Type">
+                        <select name="vehicle" id="vehicleType" class="form-control" aria-label="Select Vehicle Type">
                             <option value="car">Car</option>
                             <option value="truck">Truck</option>
                         </select>
                     </td>
-                    <td><input type="text" class="form-control" placeholder="Enter Name"></td>
-                    <td><input type="text" class="form-control" placeholder="Enter Surname"></td>
-                    <td><input type="text" class="form-control" placeholder="Enter Telephone"></td>
-                    <td><input type="text" class="form-control" placeholder="Enter Delivery Address"></td>
-                    <td><input type="time" class="form-control"></td>
-                </tr>
+                    <td><input type="text" id="name" class="form-control" placeholder="Enter Name"></td>
+                    <td><input type="text" id="surname" class="form-control" placeholder="Enter Surname"></td>
+                    <td><input type="number" id="telephone" class="form-control" placeholder="Enter Telephone"></td>
+                    <td><input type="text" id="deliveryAddress" class="form-control" placeholder="Enter Delivery Address"></td>
+                    <td><input type="time" id="returnTime" class="form-control"></td>
                 </tr>
             </tbody>
         </table>
         <div class="d-flex justify-content-end w-100 mt-3">
-            <button class="btn btn-success">Add</button>
+            <button id="scheduleDelivery" class="btn btn-success">Add</button>
         </div>
-        <table class="table table-striped table-bordered mt-4">
+        <table id="deliveryBoard" class="table table-striped table-bordered mt-4">
             <thead class="table-dark">
                 <tr>
                     <th colspan="6" class="text-center">Delivery Board</th>
@@ -132,14 +131,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Van</td>
-                    <td>Jane</td>
-                    <td>Smith</td>
-                    <td>987-654-3210</td>
-                    <td>456 Elm St, LA</td>
-                    <td>2025-01-21 02:00 PM</td>
-                </tr>
+
             </tbody>
         </table>
     </div>
