@@ -1,6 +1,21 @@
+// Create the digital clock
+function digitalClock() {
+    const now = new Date();
+            const day = now.getDate();
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const month = monthNames[now.getMonth()];
+            const year = now.getFullYear();
+            let hours = now.getHours().toString().padStart(2, '0');
+            let minutes = now.getMinutes().toString().padStart(2, '0');
+            let seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            document.getElementById('clock').textContent = `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+}
+
+setInterval(digitalClock, 1000);
+digitalClock();
 
 // Class responsible for fetching user data from an API.
-
 class UserFetcher {
     // Fetch users from API
     // Constructor takes a string `apiUrl` as a parameter
@@ -9,10 +24,7 @@ class UserFetcher {
         this.apiUrl = apiUrl;
     }
 
-    /**
-     * Fetches users from the API and processes their data.
-     * @returns {Promise<Array>} A promise that resolves to an array of user objects.
-     */
+    //Fetches users from the API and their data.
     async fetchUsers() {
         try {
             const response = await fetch(this.apiUrl);
@@ -54,7 +66,7 @@ class UserTable {
         this.intervalIds = new Map(); // Track both duration and late timer
 
         // Bind buttons, In / Out
-        this.inButton.addEventListener('click', () => this.markIn());
+        this.inButton.addEventListener('click', () => this.staffIn());
         this.outButton.addEventListener('click', () => this.promptOut());
     }
 
@@ -91,7 +103,7 @@ class UserTable {
         this.selectedRow.classList.add('table-primary');
     }
 
-    markIn() {
+    staffIn() {
         if (!this.selectedRow) {
             alert('Please select a user first.');
             return;
@@ -135,10 +147,10 @@ class UserTable {
             return;
         }
 
-        this.markOut(parseInt(durationMinutes, 10));
+        this.staffOut(parseInt(durationMinutes, 10));
     }
 
-    markOut(durationMinutes) {
+    staffOut(durationMinutes) {
         if (!this.selectedRow) {
             alert('Please select a user first.');
             return;
@@ -164,7 +176,7 @@ class UserTable {
             const now = new Date();
             if (now >= returnTime) {
                 const lateMinutes = Math.floor((now - returnTime) / 60000);
-                this.showPopup(user, lateMinutes);
+                this.staffMemberIsLate(user, lateMinutes);
             } else {
                 elapsedMinutes += 1;
                 this.selectedRow.querySelector('.duration-cell').textContent = `${elapsedMinutes} min`;
@@ -173,15 +185,15 @@ class UserTable {
         this.intervalIds.set(user, intervalId);
     }
 
-    showPopup(user, lateMinutes) {
+    staffMemberIsLate(user, lateMinutes) {
         this.removePopup(user.email);
         
         let popup = document.createElement('div');
         popup.classList.add('popup-warning');
         popup.dataset.user = user.email;
         popup.innerHTML = `
-            <div style="position: relative; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                <button style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 16px; cursor: pointer;" onclick="this.parentElement.remove()">&times;</button>
+            <div>
+                <button style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 16px; cursor: pointer;">&times;</button>
                 <img src="${user.picture}" alt="Profile Picture" style="width: 60px; height: 60px; border-radius: 50%; margin-right: 10px;" />
                 <div>
                     <p><strong>Name:</strong> ${user.name} ${user.surname}</p>
@@ -189,7 +201,13 @@ class UserTable {
                     <p><strong>Late by:</strong> ${lateMinutes} min</p>
                 </div>
             </div>`;
-        document.body.appendChild(popup);
+
+        // This will just remove the popup temporarily because of lateMinutes
+        let closeButton = popup.querySelector('button');
+        closeButton.addEventListener('click', () => this.removePopup(user.email));
+
+        let container = document.querySelector('.popup-container');
+        container.appendChild(popup);
     }
 }
 
@@ -217,17 +235,17 @@ class ScheduleDelivery {
         this.addRowClickEvent();
     }
 
-    validateInput() {
+    validateDelivery() {
         if (![this.vehicleType.value, this.nameInput.value.trim(), this.surnameInput.value.trim(),
-              /^[0-9]{8}$/.test(this.telephoneInput.value), this.deliveryAddressInput.value.trim(), this.returnTimeInput.value].every(Boolean)) {
-            alert('Please fill in all fields correctly.');
+                /^[0-9]{8}$/.test(this.telephoneInput.value), this.deliveryAddressInput.value.trim(), this.returnTimeInput.value].every(Boolean)) {
+            alert('Please check if all fields are entered correctly.');
             return false;
         }
         return true;
     }
 
     handleSubmit() {
-        if (!this.validateInput()) return;
+        if (!this.validateDelivery()) return;
 
         const now = new Date();
         const [hours, minutes] = this.returnTimeInput.value.split(':');
@@ -242,13 +260,13 @@ class ScheduleDelivery {
             returnTime: returnTime
         };
 
-        this.addToDeliveryBoard(deliveryData);
+        this.addDelivery(deliveryData);
         this.trackDelivery(deliveryData);
         this.clearInputs();
         alert(`Delivery Scheduled for ${deliveryData.name} ${deliveryData.surname}`);
     }
 
-    addToDeliveryBoard(deliveryData) {
+    addDelivery(deliveryData) {
         let tbody = this.deliveryBoard.querySelector('tbody');
         if (!tbody) {
             tbody = document.createElement('tbody');
@@ -275,24 +293,31 @@ class ScheduleDelivery {
 
         if (delay > 0) {
             setTimeout(() => {
-                this.showPopupWarning(deliveryData);
+                this.deliveryDriverIsLate(deliveryData);
             }, delay);
         }
     }
 
-    showPopupWarning(deliveryData) {
+    deliveryDriverIsLate(deliveryData) {
+        this.removePopup(deliveryData.telephone);
+
         let popup = document.createElement('div');
         popup.classList.add('popup-warning');
         popup.dataset.telephone = deliveryData.telephone;
         popup.innerHTML = `
-            <div style="position: fixed; top: 20px; right: 20px; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px;">
+            <div>
                 <button style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; font-size: 16px; cursor: pointer;" onclick="this.parentElement.remove()">&times;</button>
                 <p><strong>Vehicle Type:</strong> ${deliveryData.vehicleType}</p>
                 <p><strong>Name:</strong> ${deliveryData.name} ${deliveryData.surname}</p>
                 <p><strong>Expected Return Time:</strong> ${deliveryData.returnTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                 <p style="color: red; font-weight: bold;">Vehicle overdue!</p>
             </div>`;
-        document.body.appendChild(popup);
+
+        let closeButton = popup.querySelector('button');
+        closeButton.addEventListener('click', () => this.removePopup(deliveryData.telephone));
+
+        let container = document.querySelector('.popup-container');
+        container.appendChild(popup);
     }
 
     addRowClickEvent() {
