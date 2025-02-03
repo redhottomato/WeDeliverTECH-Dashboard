@@ -97,10 +97,10 @@ class UserTable {
 
     selectRow(row) {
         if (this.selectedRow) {
-            this.selectedRow.classList.remove('table-primary');
+            this.selectedRow.classList.remove('selected-row');
         }
         this.selectedRow = row;
-        this.selectedRow.classList.add('table-primary');
+        this.selectedRow.classList.add('selected-row');
     }
 
     staffIn() {
@@ -331,10 +331,10 @@ class ScheduleDelivery {
 
     selectRow(row) {
         if (this.selectedRow) {
-            this.selectedRow.classList.remove('table-primary');
+            this.selectedRow.classList.remove('selected-row');
         }
         this.selectedRow = row;
-        this.selectedRow.classList.add('table-primary');
+        this.selectedRow.classList.add('selected-row');
     }
 
     returnSelectedVehicle() {
@@ -364,7 +364,7 @@ class ScheduleDelivery {
 // Set variables 
 //Users
 const apiUrl = 'https://randomuser.me/api/?results=10';
-const tableElement = document.querySelector('.table');
+const tableElement = document.querySelector('table');
 const inButton = document.getElementById('in');
 const outButton = document.getElementById('out');
 const userFetcher = new UserFetcher(apiUrl);
